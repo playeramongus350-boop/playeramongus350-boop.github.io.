@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Progressive Overload Tracker</title>
+    <style>
+        :root {
+            --bg-color: #111;
+            --text-color: #fff;
+            --accent-color: #00FF88;
+            --card-bg: #1a1a1a;
+            --border-color: #333;
+            --highlight-bg: rgba(0, 255, 136, 0.2);
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            color: var(--accent-color);
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .description {
+            color: #aaa;
+            margin-bottom: 20px;
+        }
+
+        .tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .tab.active {
+            background-color: var(--accent-color);
+            color: var(--bg-color);
+        }
+
+        .workout-tabs-container {
+            margin-bottom: 20px;
+            overflow-x: auto;
+            padding: 10px 0;
+        }
+
+        .workout-tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 20px;
+            justify-content: flex-start;
+            min-width: max-content;
+        }
+
+        .workout-tab {
+            padding: 8px 15px;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            white-space: nowrap;
+        }
+
+        .workout-tab.active {
+            background-color: var(--accent-color);
+            color: var(--bg-color);
+        }
+
+        .workout-content {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+            min-height: 400px;
+        }
+
+        .workout-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .workout-title {
+            font-size: 1.5rem;
+            color: var(--accent-color);
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        button:hover {
+            background-color: var(--accent-color);
+            color: var(--bg-color);
+        }
+
+        .exercise {
+            margin-bottom: 25px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .exercise-header {
+            padding: 12px 15px;
+            background-color: rgba(255, 255, 255, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .exercise-name {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .exercise-content {
+            padding: 15px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 10px;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            font-weight: 600;
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background-color: var(--card-bg);
+            color: var(--text-color);
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+
+        .highlight {
+            background-color: var(--highlight-bg);
+            border-color: var(--accent-color);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .continue-btn {
+            display: block;
+            margin: 30px auto 0;
+            padding: 12px 30px;
+            background-color: var(--accent-color);
+            color: var(--bg-color);
+            border: none;
+            border-radius: 4px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .continue-btn:hover {
+            opacity: 0.9;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #aaa;
+        }
+
+        @media (max-width: 768px) {
+            .workout-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .controls {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            table {
+                font-size: 0.9rem;
+            }
+            
+            th, td {
+                padding: 8px 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Progressive Overload Tracker</h1>
+            <p class="description">Track your workouts and monitor your strength gains</p>
+        </header>
+
+        <div class="tabs" id="day-tabs">
+            <div class="tab active" data-day="monday">Monday</div>
+            <div class="tab" data-day="tuesday">Tuesday</div>
+            <div class="tab" data-day="wednesday">Wednesday</div>
+            <div class="tab" data-day="thursday">Thursday</div>
+            <div class="tab" data-day="friday">Friday</div>
+        </div>
+
+        <div class="workout-tabs-container">
+            <div class="workout-tabs" id="workout-tabs">
+                <!-- Workout tabs will be generated here -->
+            </div>
+        </div>
+
+        <div class="workout-content" id="workout-content">
+            <div class="empty-state">
+                <h3>Select a day and workout to get started</h3>
+                <p>Choose Monday-Friday and Workout 1-10 to view exercises</p>
+            </div>
+        </div>
+        
+        <button class="continue-btn">Continue to Next Workout</button>
+    </div>
+
+    <script>
+        // Initial workout data structure
+        const workoutStructure = {
+            monday: {
+                name: "Back, Rear Delts & Biceps",
+                exercises: [
+                    "Seated Row Machine",
+                    "Unilateral Lat Pulldown Machine",
+                    "Reverse Pec Deck",
+                    "Preacher Curl",
+                    "Concentration Curl",
+                    "Abs Machine"
+                ]
+            },
+            tuesday: {
+                name: "Legs",
+                exercises: [
+                    "Hack Squat Machine",
+                    "Leg Press Machine",
+                    "Seated Hamstring Curl Machine",
+                    "Calf Raise Machine"
+                ]
+            },
+            wednesday: {
+                name: "Chest, Rear Delts, Shoulders, Triceps",
+                exercises: [
+                    "Sitting Chest Press",
+                    "Incline Chest Press",
+                    "Shoulder Press Machine",
+                    "Reverse Pec Deck",
+                    "Tricep Extension (Single Rope Pushdown)"
+                ]
+            },
+            thursday: {
+                name: "Back & Biceps",
+                exercises: [
+                    "Seated Row Machine",
+                    "Unilateral Lat Pulldown Machine",
+                    "Reverse Pec Deck",
+                    "Preacher Curl",
+                    "Concentration Curl"
+                ]
+            },
+            friday: {
+                name: "Chest, Rear Delts, Shoulders, Triceps",
+                exercises: [
+                    "Incline Chest Press",
+                    "Pec Deck",
+                    "Reverse Pec Deck",
+                    "Curved Bar Tricep Pushdown",
+                    "Single Rope Tricep Pulldown"
+                ]
+            }
+        };
+
+        // App state
+        let workoutData = {};
+        let currentDay = 'monday';
+        let currentWorkout = 1;
+
+        // Initialize the app
+        function init() {
+            console.log("Initializing app...");
+            
+            // Load data from localStorage or initialize
+            const savedData = localStorage.getItem('workoutTrackerData');
+            if (savedData) {
+                console.log("Loading saved data");
+                workoutData = JSON.parse(savedData);
+            } else {
+                console.log("Creating new data structure");
+                // Initialize with empty data structure
+                Object.keys(workoutStructure).forEach(day => {
+                    workoutData[day] = {};
+                    for (let i = 1; i <= 10; i++) {
+                        workoutData[day][`workout${i}`] = {
+                            exercises: {}
+                        };
+                        
+                        // Initialize each exercise with empty sets (including assistedReps)
+                        workoutStructure[day].exercises.forEach(exercise => {
+                            workoutData[day][`workout${i}`].exercises[exercise] = [
+                                { weight: '', reps: '', assistedReps: '' },
+                                { weight: '', reps: '', assistedReps: '' },
+                                { weight: '', reps: '', assistedReps: '' }
+                            ];
+                        });
+                    }
+                });
+                saveData();
+            }
+
+            // Set up event listeners
+            document.getElementById('day-tabs').addEventListener('click', handleDayTabClick);
+            document.querySelector('.continue-btn').addEventListener('click', handleContinue);
+            
+            // Render initial view
+            renderWorkoutTabs();
+            renderWorkoutContent();
+        }
+
+        // Save data to localStorage
+        function saveData() {
+            localStorage.setItem('workoutTrackerData', JSON.stringify(workoutData));
+        }
+
+        // Handle day tab clicks
+        function handleDayTabClick(e) {
+            if (e.target.classList.contains('tab')) {
+                console.log("Day tab clicked:", e.target.dataset.day);
+                
+                // Update active tab
+                document.querySelectorAll('.tab').forEach(tab => {
+                    tab.classList.remove('active');
+                });
+                e.target.classList.add('active');
+                
+                // Update current day
+                currentDay = e.target.dataset.day;
+                currentWorkout = 1;
+                
+                // Re-render workout tabs and content
+                renderWorkoutTabs();
+                renderWorkoutContent();
+            }
+        }
+
+        // Handle workout tab clicks
+        function handleWorkoutTabClick(e) {
+            if (e.target.classList.contains('workout-tab')) {
+                console.log("Workout tab clicked:", e.target.dataset.workout);
+                
+                // Update active tab
+                document.querySelectorAll('.workout-tab').forEach(tab => {
+                    tab.classList.remove('active');
+                });
+                e.target.classList.add('active');
+                
+                // Update current workout
+                currentWorkout = parseInt(e.target.dataset.workout);
+                
+                // Re-render workout content
+                renderWorkoutContent();
+            }
+        }
+
+        // Handle continue button click
+        function handleContinue() {
+            console.log("Continue button clicked");
+            
+            // Move to next workout
+            if (currentWorkout < 10) {
+                currentWorkout++;
+            } else {
+                // If at last workout, go back to first
+                currentWorkout = 1;
+            }
+            
+            // Update workout tabs and content
+            renderWorkoutTabs();
+            renderWorkoutContent();
+        }
+
+        // Render workout tabs
+        function renderWorkoutTabs() {
+            console.log("Rendering workout tabs for day:", currentDay);
+            
+            const workoutTabsContainer = document.getElementById('workout-tabs');
+            workoutTabsContainer.innerHTML = '';
+            
+            for (let i = 1; i <= 10; i++) {
+                const workoutTab = document.createElement('div');
+                workoutTab.className = `workout-tab ${i === currentWorkout ? 'active' : ''}`;
+                workoutTab.textContent = `Workout ${i}`;
+                workoutTab.dataset.workout = i;
+                workoutTab.addEventListener('click', handleWorkoutTabClick);
+                workoutTabsContainer.appendChild(workoutTab);
+            }
+        }
+
+        // Render workout content
+        function renderWorkoutContent() {
+            console.log("Rendering workout content for:", currentDay, "workout", currentWorkout);
+            
+            const workoutContent = document.getElementById('workout-content');
+            const dayData = workoutStructure[currentDay];
+            const workoutKey = `workout${currentWorkout}`;
+            
+            // Check if workout data exists
+            if (!workoutData[currentDay] || !workoutData[currentDay][workoutKey]) {
+                console.error("Workout data not found for:", currentDay, workoutKey);
+                workoutContent.innerHTML = `
+                    <div class="empty-state">
+                        <h3>Workout data not found</h3>
+                        <p>Please refresh the page to initialize data</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            const exercisesData = workoutData[currentDay][workoutKey].exercises;
+            
+            console.log("Exercises data:", exercisesData);
+            
+            let contentHTML = `
+                <div class="workout-header">
+                    <h2 class="workout-title">${dayData.name} - Workout ${currentWorkout}</h2>
+                    <div class="controls">
+                        <button id="export-btn">Export CSV</button>
+                        <button id="collapse-all">Collapse All</button>
+                        <button id="expand-all">Expand All</button>
+                    </div>
+                </div>
+                <div class="exercises-container">
+            `;
+            
+            // Add each exercise
+            dayData.exercises.forEach((exercise, index) => {
+                console.log("Processing exercise:", exercise);
+                
+                const exerciseData = exercisesData[exercise];
+                console.log("Exercise data for", exercise, ":", exerciseData);
+                
+                if (!exerciseData) {
+                    console.error("No data found for exercise:", exercise);
+                    return;
+                }
+                
+                contentHTML += `
+                    <div class="exercise">
+                        <div class="exercise-header">
+                            <div class="exercise-name">${exercise}</div>
+                        </div>
+                        <div class="exercise-content">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Set</th>
+                                        <th>Weight</th>
+                                        <th>Reps</th>
+                                        <th>Assisted Reps</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                `;
+                
+                // Add each set for this exercise
+                exerciseData.forEach((set, setIndex) => {
+                    contentHTML += `
+                        <tr>
+                            <td>${setIndex + 1}</td>
+                            <td>
+                                <input type="text" 
+                                       value="${set.weight || ''}" 
+                                       data-exercise="${exercise}" 
+                                       data-set="${setIndex}" 
+                                       data-field="weight"
+                                       placeholder="Weight">
+                            </td>
+                            <td>
+                                <input type="text" 
+                                       value="${set.reps || ''}" 
+                                       data-exercise="${exercise}" 
+                                       data-set="${setIndex}" 
+                                       data-field="reps"
+                                       placeholder="Reps">
+                            </td>
+                            <td>
+                                <input type="text" 
+                                       value="${set.assistedReps || ''}" 
+                                       data-exercise="${exercise}" 
+                                       data-set="${setIndex}" 
+                                       data-field="assistedReps"
+                                       placeholder="Assisted">
+                            </td>
+                        </tr>
+                    `;
+                });
+                
+                contentHTML += `
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            contentHTML += `</div>`;
+            
+            workoutContent.innerHTML = contentHTML;
+            
+            // Add event listeners for inputs
+            workoutContent.querySelectorAll('input').forEach(input => {
+                input.addEventListener('focus', handleInputFocus);
+                input.addEventListener('blur', handleInputBlur);
+                input.addEventListener('change', handleInputChange);
+            });
+            
+            // Add event listeners for control buttons
+            const exportBtn = document.getElementById('export-btn');
+            const collapseBtn = document.getElementById('collapse-all');
+            const expandBtn = document.getElementById('expand-all');
+            
+            if (exportBtn) exportBtn.addEventListener('click', exportToCSV);
+            if (collapseBtn) collapseBtn.addEventListener('click', () => toggleAllExercises('collapse'));
+            if (expandBtn) expandBtn.addEventListener('click', () => toggleAllExercises('expand'));
+            
+            // Add event listeners for exercise headers
+            workoutContent.querySelectorAll('.exercise-header').forEach(header => {
+                header.addEventListener('click', () => {
+                    header.nextElementSibling.classList.toggle('hidden');
+                });
+            });
+            
+            console.log("Workout content rendered successfully");
+        }
+
+        // Handle input focus
+        function handleInputFocus(e) {
+            e.target.classList.add('highlight');
+        }
+
+        // Handle input blur
+        function handleInputBlur(e) {
+            // Keep highlight if value has changed
+            const originalValue = getOriginalValue(e.target);
+            if (e.target.value !== originalValue) {
+                e.target.classList.add('highlight');
+            } else {
+                e.target.classList.remove('highlight');
+            }
+        }
+
+        // Handle input change
+        function handleInputChange(e) {
+            const { exercise, set, field } = e.target.dataset;
+            const value = e.target.value;
+            
+            console.log("Input changed:", exercise, set, field, value);
+            
+            // Update the data
+            const workoutKey = `workout${currentWorkout}`;
+            workoutData[currentDay][workoutKey].exercises[exercise][set][field] = value;
+            
+            // Save to localStorage
+            saveData();
+            
+            // Keep the highlight to show it's been updated
+            e.target.classList.add('highlight');
+        }
+
+        // Get original value for comparison
+        function getOriginalValue(input) {
+            const { exercise, set, field } = input.dataset;
+            const workoutKey = `workout${currentWorkout}`;
+            const exerciseData = workoutData[currentDay][workoutKey].exercises[exercise];
+            
+            if (exerciseData && exerciseData[set]) {
+                return exerciseData[set][field] || '';
+            }
+            return '';
+        }
+
+        // Toggle all exercises (collapse/expand)
+        function toggleAllExercises(action) {
+            const exerciseContents = document.querySelectorAll('.exercise-content');
+            exerciseContents.forEach(content => {
+                if (action === 'collapse') {
+                    content.classList.add('hidden');
+                } else {
+                    content.classList.remove('hidden');
+                }
+            });
+        }
+
+        // Export data to CSV
+        function exportToCSV() {
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "Day,Workout,Exercise,Set,Weight,Reps,AssistedReps\n";
+            
+            Object.keys(workoutData).forEach(day => {
+                Object.keys(workoutData[day]).forEach(workoutKey => {
+                    const workoutNum = workoutKey.replace('workout', '');
+                    const exercises = workoutData[day][workoutKey].exercises;
+                    
+                    Object.keys(exercises).forEach(exercise => {
+                        exercises[exercise].forEach((set, index) => {
+                            const row = [
+                                day,
+                                workoutNum,
+                                exercise,
+                                index + 1,
+                                set.weight,
+                                set.reps,
+                                set.assistedReps || ''
+                            ].join(',');
+                            csvContent += row + '\n';
+                        });
+                    });
+                });
+            });
+            
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "workout_data.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Initialize the app when the DOM is loaded
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
